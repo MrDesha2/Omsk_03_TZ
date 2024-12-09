@@ -1,0 +1,256 @@
+\input{head.tex}
+
+
+%\section {Назначение и цели создания системы}
+
+\subsection{Назначение системы}
+Проект внедрения программной системы планирования производства ПС ПП «Opti-Corrugated» для автоматизации процессов планирования и учета производства на \FIRMA.
+
+Программная Система Планирования Производства  \quad (в дальнейшем ПС ПП, СИСТЕМА) предназначена для планирования и учёта производства продукции из гофрированного картона \FIRMA (в дальнейшем ПРЕДПРИЯТИЕ). Учёт осуществляется на основе ввода информации в ПС ПП по:
+\begin{itemize}
+    \item Заказам покупателей;
+    \item Заказам на производство; 
+    \item Вырабатываемой продукции на гофроагрегатах и линиях переработки;
+    \item Информации по движению материалов; 
+    \item Информации по движению готовой продукции.
+\end{itemize}
+
+Данный документ содержит дополнительные функциональные требования пользователей, по которым необходимо внести изменения в работу ПС ПП «Opti-Corrugated» в рамках реализации проекта и внедрения системы на предприятии  \FIRMA, полученных в ходе проведения аудита предприятия и на основании документа
+''Программная система планирования производства «Гофротара» \FIRMA. Отчет по экспресс-обследованию. \ESKDNUM''.
+
+
+\subsection{Цели и задачи работ по разработке ПС ПП}
+
+В качестве основных целей модернизации ПС ПП выделяются следующие:
+\begin{itemize}
+%    \item Переход на более современную версию системы;
+    \item Оптимизация механизмов планирования выполнения производственных заказов;
+    \item Снижение отходов производства за счет применения оптимизационных методов планирования раскроев производства;
+    \item Снижение сроков выполнения производственных заказов вследствие снижения простоя технологического оборудования и уплотнения производственной программы;
+    \item Объединение в единое информационное пространство технологических и производственных подразделений;
+    \item Получение реальной информации по ключевым показателям работы предприятия в целом;
+    \item Снижение затрат на процедуры планирования и контроля за счет автоматизации соответствующих производственных процессов.
+    \item Интеграция с учетными системами 1С:Бухгалтерия и 1С:УПП.
+    %\item Повышение эффективности использования производственного оборудования за счет разработки и применения планово-предупредительных ремонтов.
+    \item Снижение затрат на процедуры планирования и контроля за счет автоматизации соответствующих производственных процессов.
+%    \item Интеграция с существующими на предприятии информационными системами: бухгалтерскими, экономическими, производственными, технологическими (1С: Предприятие).
+     \item Интеграция с технологическим оборудованием: гофроагрегат Fosber
+\end{itemize}
+
+
+
+
+
+\subsection{Граница проекта и карта рабочих мест}
+
+\scriptsize
+\begin{longtable}{|p{8mm}|p{40mm}|p{90mm}|c|}
+\hline
+\parbox[c][9mm]{8mm}{\raggedright} & \parbox[c]{45mm}{\centeringПользователь} & \parbox[c]{106mm}{\centering Модули рабочего места} & \parbox[c]{24mm}{\centeringКоличество 
+рабочих мест} \\
+\hline
+\parbox[c][5mm]{8mm}{1} & \parbox{45mm}{\director} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль всех модулей системы} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{2} & \parbox{45mm}{\manager} & \parbox{106mm}{} & \parbox{24mm}{3} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование отгрузки готовой гофропродукции} & \parbox{24mm}{} \\
+% \hline
+% \parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Расчет предварительной стоимости продукции} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Продажа готовой продукции} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет требований к новым технологическим картам} & \parbox{24mm}{} \\
+% \hline
+% \parbox[c][5mm]{8mm}{3} & \parbox{45mm}{Инженер по транспорту} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+% \hline
+% \parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование и заказ транспорта} & \parbox{24mm}{} \\
+% \hline
+% \parbox[c][5mm]{8mm}{4} & \parbox{45mm}{Планировщик} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+% \hline
+% \parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование работы линий переработки} & \parbox{24mm}{} \\
+% \hline
+% \parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет требований к новым технологическим картам} & \parbox{24mm}{} \\
+% \hline
+% \parbox[c][5mm]{8mm}{4} & \parbox{45mm}{Специалист по закупкам} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+% \hline
+% \parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет закупки сырья под раскрои ГА} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{5} & \parbox{45mm}{\planner} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование работы гофроагрегата и линий переработки} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование потребностей в материалах под раскрои ГА} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет закупки сырья под раскрои ГА} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{6} & \parbox{45mm}{Бухгалтерия} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Оперативная выгрузка данных из Гофротары} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{7} & \parbox{45mm}{\laborant} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль качества готовой продукции} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{8} & \parbox{45mm}{\tehnolog} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет требований к новым технологическим картам} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет и планирование технологической оснастки} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{9} & \parbox{45mm}{Учетчик на ГА} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+
+\parbox[c][5mm]{8mm}{9} & \parbox{45mm}{\gaoperator} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет выработки на гофроагрегате} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{10} & \parbox{45mm}{\operator} & \parbox{106mm}{} & \parbox{24mm}{8} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет выработки на технологических линиях} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{11} & \parbox{45mm}{\master} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль выработки на технологических линиях и} \newline {гофроагрегатах} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Распределение сырья по выработке на линиях и гофроагрегате} & \parbox{24mm}{} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Распределение трудозатрат работников на гофроагрегате и} \newline {технологических линиях} & \parbox{24mm}{} \\
+\hline
+%\parbox[c][5mm]{8mm}{11} & \parbox{45mm}{Экономист} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Расчет нормативной стоимости изделия} & \parbox{24mm}{} \\
+%\hline
+
+%\hline
+%\parbox[c][5mm]{8mm}{7} & \parbox{45mm}{Кладовщик} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Прием, учет, хранение и выдача ТМЦ} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Отгрузка готовой продукции} & \parbox{24mm}{} \\
+%\hline
+\parbox[c][5mm]{8mm}{12} & \parbox{45mm}{\processengineer} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль выработки на технологических линиях и} \newline {гофроагрегатах} & \parbox{24mm}{} \\
+\hline
+% \parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Распределение сырья по выработке на линиях и гофроагрегате} & \parbox{24mm}{} \\
+% \hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Распределение трудозатрат работников на гофроагрегате и технологических линиях} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{10} & \parbox{45mm}{Бухгалтерия} & \parbox{106mm}{} & \parbox{24mm}{3} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Оперативная выгрузка данных из Гофротары} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{11} & \parbox{45mm}{Экономист} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Предварительная калькуляция стоимости изделия} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Расчет нормативной стоимости изделия} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{12} & \parbox{45mm}{Начальник производства} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль выработки на технологических линиях и гофроагрегатах} & \parbox{24mm}{} \\
+
+%\hline
+%\parbox[c][5mm]{8mm}{24} & \parbox{40mm}{Инженер по ремонту оборудования} & %\parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Управление ремонтам оборудования} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{ИТОГО} & \parbox{106mm}{} & \parbox{24mm}{22} \\\hline
+%\caption{Карта рабочих мест}\label{tab:arms}
+%\end{longtable} 
+
+%\begin{longtable}{|p{8mm}|p{40mm}|p{90mm}|c|}
+%\hline
+%\parbox[c][9mm]{8mm}{\raggedright} & \parbox[c]{45mm}{\centeringПользователь} & \parbox[c]{106mm}{\centeringМодули рабочего места} & \parbox[c]{24mm}{\centeringКоличество 
+%рабочих мест} \\
+%\hline
+%\parbox[c][5mm]{8mm}{1} & \parbox{45mm}{Генеральный директор} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование отгрузки готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Расчет предварительной стоимости продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Продажа готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет требований к новым технологическим картам} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{1} & \parbox{45mm}{Менеджер по продажам} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование отгрузки готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Расчет предварительной стоимости продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Продажа готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет требований к новым технологическим картам} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{2} & \parbox{45mm}{Технологический отдел} & \parbox{106mm}{} & \parbox{24mm}{3} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет требований к новым технологическим картам} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет и планирование технологической оснастки} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{3} & \parbox{45mm}{Планировщик} & \parbox{106mm}{} & \parbox{24mm}{3} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование работы гофроагрегата и линий переработки} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Планирование потребностей в материалах под раскрои ГА} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет закупки сырья под раскрои ГА} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{4} & \parbox{45mm}{Учетчик на ГА} & \parbox{106mm}{} & \parbox{24mm}{3} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет выработки на гофроагрегате} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{5} & \parbox{45mm}{Машинист ЛП} & \parbox{106mm}{} & \parbox{24mm}{10} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Учет выработки на технологических линиях} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{6} & \parbox{45mm}{Менеджер по логистике} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Отгрузка готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{7} & \parbox{45mm}{Кладовщик} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Прием, учет, хранение и выдача ТМЦ} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Отгрузка готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{8} & \parbox{45mm}{Лаборант} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль качества готовой продукции} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{9} & \parbox{45mm}{Мастер производства} & \parbox{106mm}{} & \parbox{24mm}{2} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль выработки на технологических линиях и гофроагрегатах} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Распределение сырья по выработке на линиях и гофроагрегате} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Распределение трудозатрат работников на гофроагрегате и технологических линиях} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{10} & \parbox{45mm}{Бухгалтерия} & \parbox{106mm}{} & \parbox{24mm}{3} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Оперативная выгрузка данных из Гофротары} & \parbox{24mm}{} \\
+%\hline
+%\parbox[c][5mm]{8mm}{12} & \parbox{45mm}{Начальник производства} & \parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Контроль выработки на технологических линиях и гофроагрегатах} & \parbox{24mm}{} \\
+
+%\hline
+%\parbox[c][5mm]{8mm}{24} & \parbox{40mm}{Инженер по ремонту оборудования} & %\parbox{106mm}{} & \parbox{24mm}{1} \\
+%\hline
+%\parbox[c][5mm]{8mm}{} & \parbox{45mm}{} & \parbox{106mm}{Управление ремонтам оборудования} & \parbox{24mm}{} \\
+%\hline
+\parbox[c][5mm]{8mm}{} & \parbox{45mm}{ИТОГО} & \parbox{106mm}{} & \parbox{24mm}{20} \\\hline
+\caption{Карта рабочих мест}\label{tab:arms}
+\end{longtable}  
+\normalsize
+\clearpage
+%Установка рабочих мест для машинистов оборудования пока не подтверждена.
+
+\clearpage
+%Установка рабочих мест для машинистов оборудования пока не подтверждена.
+
+\input{enddoc.tex}

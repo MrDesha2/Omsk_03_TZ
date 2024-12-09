@@ -1,0 +1,71 @@
+\input{head.tex}
+\def \notincludehead{}
+
+\input{names}
+
+
+%\newcommand*{\No}{\textnumero}
+\begin{document}
+
+	% титульный лист 
+ 	\maketitle
+ 	
+   \input{change_eskd.tex}
+	% содержание ЕСКД
+% 	\input{contents_eskd.tex}
+%  	\newpage
+
+	% оглавление 
+	\scriptsize
+	\setcounter{tocdepth}{4}
+	\tableofcontents
+	\normalsize
+	\newpage
+
+
+
+% Основные роли
+
+\newcommand{\gofro}   {\blue{@ГТ}\xspace}
+\newcommand{\erp}     {\blue{@1С:УПП}\xspace}
+\newcommand{\buh}     {\blue{@1C:Бухгалтерия}\xspace}
+\newcommand{\syncro}  {\blue{@SYNCRO}\xspace}
+% \newcommand{\crm}  {\blue{@Битрикс24}\xspace}
+
+
+\newcommand{\manager}{!МенеджерПоПродажам}
+\newcommand{\tehnolog}{!Технолог}
+% \newcommand{\designer}{\green{!Дизайнер}\xspace}
+\newcommand{\planner}{!Планировщик}
+% % \newcommand{\montaznik}{\green{!Монтажник}\xspace}
+\newcommand{\operator}{!МашинистЛинии}
+\newcommand{\linkoperator}{!ОператорРаската}
+% % \newcommand{\supplier}{\green{!МенеджерПоСнабжению}\xspace}
+% \newcommand{\purchase}{\green{!СпециалистПоЗакупкам}\xspace}
+% \newcommand{\logistician}{\green{!МенеджерПоЛогистике}\xspace}
+\newcommand{\processengineer}{!ДиректорПоПроизводству}
+\newcommand{\auditor}{!Бухгалтер}
+\newcommand{\gaoperator}{!МашинистГА}
+% \newcommand{\kladovshik}{\green{!Кладовщик}\xspace}
+\newcommand{\master}{!МастерСмены}
+% \newcommand{\driver}{\green{!ВодительПогрузчика}\xspace}
+\newcommand{\director}{!Директор}
+\newcommand{\laborant}{!КонтролерПоКачеству}
+% \newcommand{\okk}{\green{!ОКК}\xspace}
+    
+
+
+	% документ
+	\section{Общие положения}
+	\input{00_Preface/Preface.tex}
+
+	\section{Назначение и цели создания системы}
+	\input{00_Preface/goals.tex}
+
+	\section{Характеристика объекта автоматизации}
+	\input{00_Preface/chara.tex}
+
+	% перечень модулей системы и их характеристики
+    \input{10_Modules/Modules.tex}
+
+\end{document}

@@ -1,0 +1,906 @@
+\newpage
+
+% Обмен полностью взят из Воронежа новый ГА
+
+
+
+% \section{Требования по организации обмена данными с системой управления гофроагрегата BHS}
+% \label{sec:BHS}
+\section{Требования по организации обмена данными с системой управления гофроагрегатом SYNCRO}
+\label{sec:fosber}
+
+СИСТЕМА должна обмениваться данными с системой управления гофроагрегатом SYNCRO компании Fosber.
+
+Версия протокола обмена ''Syncro STANDARD COMMUNICATION WITH OFFICE SYSTEM ver 0.5''.
+
+Версия сиcтемы Syncro 3.7.xx.
+
+Обмен данными должен производиться из формы редактирования документа ''ОтчетПроизводстваЛГК''.
+
+Сетевое подключение к SYNCRO использует сконфигурированный UDP/IP-стандарт протокол. Параметры по умолчанию для доступа стандартной связи с SYNCRO представлены в таблице \ref{tab:fosber_mainparameters}.
+
+\scriptsize
+\begin{longtable}{|p{53mm}|p{20mm}|}
+\hline
+{\it {\bf \parbox[c][5mm]{53mm}{\raggedright Описание}}} & {\it {\bf \parbox[c]{20mm}{\raggedrightЗначение}}} \\
+\hline
+\parbox[c][5mm]{53mm}{Сетевой протокол} & \parbox{20mm}{UDP/IP} \\
+\hline
+\parbox[c][5mm]{53mm}{Удаленный IP адрес} & \parbox{20mm}{10.151.151.?} \\
+\hline
+\parbox[c][5mm]{53mm}{Локальный IP адрес} & \parbox{20mm}{10.151.151.1} \\
+\hline
+\parbox[c][5mm]{53mm}{Маска подсети} & \parbox{20mm}{255.255.255.0} \\
+\hline
+\parbox[c][5mm]{53mm}{Удаленный порт} & \parbox{20mm}{60001} \\
+\hline
+\parbox[c][5mm]{53mm}{Локальный порт} & \parbox{20mm}{60000} \\
+\hline
+\caption{Параметры по умолчанию для доступа стандартной связи с SYNCRO}\label{tab:fosber_mainparameters}\end{longtable}  
+\normalsize
+
+Структура сообщения представлена в таблице  \ref{tab:fosber_message}.
+
+\scriptsize
+\begin{longtable}{|p{40mm}|p{20mm}|p{70mm}|}
+\hline
+{\bf \parbox[c][5mm]{40mm}{\raggedright Позиция в структуре}} & {\bf \parbox[c]{20mm}{\raggedright № байта}} & {\bf \parbox[c]{40mm}{\raggedrightКомментарий}} \\
+\hline
+\parbox[c][5mm]{40mm}{STX} & \parbox{20mm}{1 byte} & \parbox{70mm}{02 HEX, символ начала сообщения} \\
+\hline
+\parbox[c][5mm]{40mm}{COMMAND} & \parbox{20mm}{2 byte} & \parbox{70mm}{Два символа, соответствующие команде} \\
+\hline
+\parbox[c][10mm]{40mm}{ID (Related to Run ID 1 field)} & \parbox{20mm}{4 byte} & \parbox{70mm}{Четыре символа, представляющие идентификатор раскроя} \\
+\hline
+\parbox[c][5mm]{40mm}{DATA BLOCK} & \parbox{20mm}{Variable} & \parbox{70mm}{Блок данных, есть команды без блока данных} \\
+\hline
+\parbox[c][10mm]{40mm}{MESSAGE N} & \parbox{20mm}{2 byte} & \parbox{70mm}{Два символа, используемые для связи запроса с ответом системы SYNCRO} \\
+\hline
+\parbox[c][5mm]{40mm}{CHECKSUM} & \parbox{20mm}{2 byte} & \parbox{70mm}{Контрольная сумма} \\
+\hline
+\parbox[c][5mm]{40mm}{ETX} & \parbox{20mm}{1 byte} & \parbox{70mm}{03 HEX, символ окончания сообщения} \\
+\hline
+\caption{Структура сообщения}\label{tab:fosber_message}
+\end{longtable}  
+\normalsize
+
+\label{secLfosber_feature}
+Особенности, которые необходимо учесть:
+\begin{itemize}
+	\item Длина сообщения зависит от длины блока данных.
+	\item Пустые поля и незаполненная часть поля должны заполняться пробелами.
+	\item Каждое поле должно быть выравнено по левому краю.
+	\item Текстовые поля с кодировкой на кириллице должны быть перекодированы в транслитерацию.
+	\item Не допускается использование специальных символов (в т.ч. ''*'', ''№'' и пр.).
+	\item Для интеграции необходимо вручную привести в соответствие справочник ''Композиции'' с таблицей  ''Board grade'' гофроагрегата ***. 
+	\item Запрещается редактировать поле ''Комментарий'' в задании гофроагрегата, т.к. в нём содержится идентификатор задания СИСТЕМЫ.
+\end{itemize}
+
+
+*** Board grade --- строка, указывающая тип бумаги, используемой для конкретной композиции сырья. SYNCRO вводит эти данные в базу данных, которая содержит другие, персонализированные оператором, полезные для оптимизации работы продольно-резательной машины Fosber. 
+Эти данные также можно визуализировать на страницах SYNCRO и распечатать по запросу на этикетке комплекта.
+Кодификация композиции сырья ДОЛЖНА БЫТЬ УНИКАЛЬНОЙ и совпадать в СИСТЕМЕ и SYNCRO. Это означает, что код должен быть разным для разных профилей гофрополотна и плотности бумаги/картона.
+
+
+Структура команд для передачи данных из СИСТЕМЫ в SYNCRO представлена в таблице \ref{tab:fosber_comand_send}.
+
+\scriptsize
+\begin{longtable}{|p{15mm}|p{35mm}|p{40mm}|p{70mm}|}
+\hline
+{\bf {\parbox[c][5mm]{15mm}{\raggedright Команда}}} & {\it {\bf \parbox[c]{35mm}{\raggedright ID}}} & {{\bf \parbox[c]{40mm}{\raggedright Блок данных}}} & {\bf \parbox[c]{70mm}{\raggedright Поведение}} \\
+\hline
+\parbox[c][5mm]{15mm}{PE} & \parbox{35mm}{''0000'' (ASCII 30Hex)} & \parbox{40mm}{Блок ответа.} & \parbox{70mm}{Добавление раскроя в конец списка заданий.} \\
+\hline
+\caption{Структура команд для передачи данных Synchro}\label{tab:fosber_comand_send}
+\end{longtable}  
+\normalsize
+
+Структура ответа от SYNCRO представлена в таблице \ref{tab:fosber_answer_send}
+
+\scriptsize
+\begin{longtable}{|p{15mm}|p{35mm}|p{40mm}|p{70mm}|}
+\hline
+{\bf {\bf \parbox[c][5mm]{15mm}{\raggedright Команда}}} & {\it {\bf \parbox[c]{35mm}{\raggedright ID}}} & {\it {\bf \parbox[c]{40mm}{\raggedright Блок данных}}} & {\it {\bf \parbox[c]{70mm}{\raggedright Поведение}}} \\
+\hline
+\parbox[c][5mm]{15mm}{OK} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{34 пробела (ASCII 20Hex)} & \parbox{70mm}{Выгрузка успешна.} \\
+\hline
+\parbox[c][5mm]{15mm}{CK} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{34 пробела (ASCII 20Hex)} & \parbox{70mm}{Ошибка контрольной суммы.} \\
+\hline
+\parbox[c][5mm]{15mm}{DF} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{Код ошибки (4 знака) и 30 пробелов (ASCII 20Hex)} & \parbox{70mm}{Ошибка в блоке данных.} \\
+\hline
+\parbox[c][5mm]{15mm}{DU} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{34 пробела (ASCII 20Hex)} & \parbox{70mm}{Дублирование идентификаторов раскроев.} \\
+\hline
+\parbox[c][5mm]{15mm}{RF} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{Код ошибки (4 знака) и 30 пробелов (ASCII 20Hex)} & \parbox{70mm}{Система не может выполнить команду.} \\
+\hline
+\caption{Структура команд ответа от SYNCRO}\label{tab:fosber_answer_send}
+\end{longtable}  
+\normalsize
+
+Структура команд для запроса данных из СИСТЕМЫ в SYNCRO представлена в таблице \ref{tab:fosber_comand_return}.
+
+\scriptsize
+\begin{longtable}{|p{15mm}|p{35mm}|p{40mm}|p{70mm}|}
+\hline
+{\bf {\bf \parbox[c][5mm]{15mm}{\raggedright Команда}}} & {\it {\bf \parbox[c]{35mm}{\raggedright ID}}} & {\bf {\bf \parbox[c]{40mm}{\raggedright Блок данных}}} & {\bf \parbox[c]{70mm}{\raggedright Поведение}} \\
+\hline
+\parbox[c][5mm]{15mm}{SE} & \parbox{35mm}{''0000'' (ASCII 30Hex)} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Информация о текущем состоянии.} \\
+\hline
+\parbox[c][5mm]{15mm}{LI} & \parbox{35mm}{Номер связки} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Информация о раскрое (по идентификатору).} \\
+\hline
+\parbox[c][5mm]{15mm}{LO} & \parbox{35mm}{Индекс} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Информация о раскрое (по индексу).} \\
+\hline
+\parbox[c][5mm]{15mm}{LE} & \parbox{35mm}{''0000'' (ASCII 30Hex)} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Список идентификаторов заданий в работе.} \\
+\hline
+\parbox[c][5mm]{15mm}{LD} & \parbox{35mm}{''0000'' (ASCII 30Hex)} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Список идентификаторов выполненных заданий.} \\
+\hline
+\parbox[c][5mm]{15mm}{VE} & \parbox{35mm}{''0000'' (ASCII 30Hex)} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Данные буфера по выработке.} \\
+\hline
+\parbox[c][5mm]{15mm}{DW} & \parbox{35mm}{''0000'' (ASCII 30Hex)} & \parbox{40mm}{Команда без блока.} & \parbox{70mm}{Данные буфера по остановам.} \\
+\hline
+\caption{Структура команд для запроса данных из СИСТЕМЫ в SYNCRO}\label{tab:fosber_comand_return}
+\end{longtable}  
+\normalsize
+
+Структура ответа от SYNCRO представлена в таблице \ref{tab:fosber_answer_return}
+
+\scriptsize
+\begin{longtable}{|p{15mm}|p{35mm}|p{40mm}|p{70mm}|}
+\hline
+{\bf {\bf \parbox[c][5mm]{15mm}{\raggedright Команда}}} & {\it {\bf \parbox[c]{40mm}{\raggedright ID}}} & {\it {\bf \parbox[c]{40mm}{\raggedright Блок данных}}} & {\it {\bf \parbox[c]{70mm}{\raggedright Поведение}}} \\
+\hline
+\parbox[c][5mm]{15mm}{OK} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{Блок ответа.} & \parbox{70mm}{Ответ сформирован.} \\
+\hline
+\parbox[c][5mm]{15mm}{CK} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{Блок ответа.} & \parbox{70mm}{Ошибка контрольной суммы.} \\
+\hline
+\parbox[c][5mm]{15mm}{RF} & \parbox{35mm}{4 пробела (ASCII 20Hex)} & \parbox{40mm}{Блок ответа.} & \parbox{70mm}{Система не может выполнить команду.} \\
+\hline
+\caption{Структура ответа от SYNCRO}\label{tab:fosber_answer_return}
+\end{longtable}  
+\normalsize
+
+% ПАРАМЕТРЫ РАСКРОЕВ
+
+\scriptsize
+\begin{landscape}
+Структура блока параметров раскроя для передачи из СИСТЕМЫ в SYNCRO, а также для получения информации обратно, представлена в таблице \ref{tab:fosber_block}.
+
+\begin{longtable}{|p{25mm}|p{6mm}|p{6mm}|p{8mm}|p{6mm}|p{60mm}|p{12mm}|p{100mm}|}
+\hline
+
+\parbox[c][10mm]{20mm}{\centering Поле} & \parbox{5mm}{\centering С} & \parbox{5mm}{\centering По} & \parbox{5mm}{\centering Длина} & \parbox{5mm}{\centering Тип} & \parbox{49mm}{\centering Opti-Corrugated} & \parbox{5mm}{\centering Транслит} & \parbox{80mm}{\centering Комментарий} \\
+\hline
+\parbox[c][20mm]{25mm}{Run ID 1} & \parbox{10mm}{1} & \parbox{10mm}{4} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{40mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. Номер связки} & \parbox{11mm}{} & \parbox{89mm}{Внутренний идентификатор задания на гофроагрегате. С каждым новым заданием увеличивается на единицу. Должен быть между 1000 и 8999. Введённые вручную оператором раскрои будут с номерами между 9000 и 9999.} \\
+\hline
+\parbox[c][20mm]{25mm}{Run ID 2} & \parbox{10mm}{5} & \parbox{10mm}{15} & \parbox{10mm}{11} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. ID Задания} & \parbox{11mm}{} & \parbox{89mm}{Идентификатор задания. Создаётся при планировании раскроев в СИСТЕМЕ. Символьный идентификатор раскроя, который отображается на экране системы SYNCRO.} \\
+\hline
+\parbox[c][22mm]{25mm}{Flute} & \parbox{10mm}{16} & \parbox{10mm}{18} & \parbox{10mm}{3} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Профиль. Наименование} & \parbox{11mm}{} & \parbox{89mm}{Наименование профиля.} \\
+\hline
+\parbox[c][22mm]{25mm}{Board grade} & \parbox{10mm}{19} & \parbox{10mm}{54} & \parbox{10mm}{36} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Композиция. Код} & \parbox{11mm}{} & \parbox{89mm}{Код композиции в кодировке SYNCRO.} \\
+\hline
+\parbox[c][22mm]{25mm}{Reel's width} & \parbox{10mm}{55} & \parbox{10mm}{58} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Формат} & \parbox{11mm}{} & \parbox{89mm}{Ширина рулона, мм.} \\
+\hline
+\parbox[c][8mm]{25mm}{Type of trim} & \parbox{10mm}{59} & \parbox{10mm}{59} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип разреза на продольной резке. Значение ‘1’ (ASCII 31Hex) - с обрезью, ‘2’ (ASCII 32Hex) - без обрези.} \\
+\hline
+\parbox[c][13mm]{25mm}{Scoring gap distance} & \parbox{10mm}{60} & \parbox{10mm}{62} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Регистр ''Обмен с ГА: Глубина рилевок'' (Профиль, Марка, ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Расстояние между профилем рилевки верхнего вала по сравнению с профилем рилевки нижнего вала в 1/10mm.} \\
+\hline
+\parbox[c][20mm]{25mm}{Grammage} & \parbox{10mm}{63} & \parbox{10mm}{66} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Сумма(СлойN * ПлотностьСлояN)} & \parbox{11mm}{} & \parbox{89mm}{Общий граммаж всех слоёв раскроя.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 1} & \parbox{10mm}{67} & \parbox{10mm}{78} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой1. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 1 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 2} & \parbox{10mm}{79} & \parbox{10mm}{90} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой2. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 2 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 3} & \parbox{10mm}{91} & \parbox{10mm}{102} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой3. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 3 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 4} & \parbox{10mm}{103} & \parbox{10mm}{114} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой4. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 4 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 5} & \parbox{10mm}{115} & \parbox{10mm}{126} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой5. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 5 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 6} & \parbox{10mm}{127} & \parbox{10mm}{138} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой6. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 6 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 7} & \parbox{10mm}{139} & \parbox{10mm}{150} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой7. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование слоя 7 бумаги.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 1 Grammage} & \parbox{10mm}{151} & \parbox{10mm}{153} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой1. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 1.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 2 Grammage} & \parbox{10mm}{154} & \parbox{10mm}{156} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой2. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 2.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 3 Grammage} & \parbox{10mm}{157} & \parbox{10mm}{159} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой3. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 3.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 4 Grammage} & \parbox{10mm}{160} & \parbox{10mm}{162} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой4. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 4.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 5 Grammage} & \parbox{10mm}{163} & \parbox{10mm}{165} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой5. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 5.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 6 Grammage} & \parbox{10mm}{166} & \parbox{10mm}{168} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой6. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 6.} \\
+\hline
+\parbox[c][20mm]{25mm}{Paper 7 Grammage} & \parbox{10mm}{169} & \parbox{10mm}{171} & \parbox{10mm}{3} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ГруппаРаскроев. Слой7. ПлотностьСлоя} & \parbox{11mm}{} & \parbox{89mm}{Граммаж бумаги слоя 7.} \\
+\hline
+{\bf \parbox[c][5mm]{25mm}{Заказ №1}} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{} \\
+\hline
+\parbox[c][13mm]{25mm}{Order number} & \parbox{10mm}{172} & \parbox{10mm}{183} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка'' Заказ. Номер} & \parbox{11mm}{} & \parbox{89mm}{Номер производственного заказа.} \\
+\hline
+\parbox[c][15mm]{25mm}{Customer} & \parbox{10mm}{184} & \parbox{10mm}{213} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Контрагент. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование заказчика.} \\
+\hline
+\parbox[c][5mm]{25mm}{Destination} & \parbox{10mm}{214} & \parbox{10mm}{243} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Адрес доставки.} \\
+\hline
+\parbox[c][5mm]{25mm}{Customer's town} & \parbox{10mm}{244} & \parbox{10mm}{263} & \parbox{10mm}{20} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Город доставки.} \\
+\hline
+\parbox[c][5mm]{25mm}{City code} & \parbox{10mm}{264} & \parbox{10mm}{265} & \parbox{10mm}{2} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Код города доставки.} \\
+\hline
+\parbox[c][15mm]{25mm}{Customer's code} & \parbox{10mm}{266} & \parbox{10mm}{277} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Контрагент. Код} & \parbox{11mm}{Да} & \parbox{89mm}{Код контрагента.} \\
+\hline
+\parbox[c][15mm]{25mm}{Level} & \parbox{10mm}{278} & \parbox{10mm}{278} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Стол} & \parbox{11mm}{} & \parbox{89mm}{Обозначение стола. Если номер стола 1, то ‘L’ (ASCII 4CHex), иначе ‘U’ (ASCII 55Hex).} \\
+\hline
+\parbox[c][15mm]{25mm}{Sheet length} & \parbox{10mm}{279} & \parbox{10mm}{282} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ДлинаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Длина заготовки, мм.} \\
+\hline
+\parbox[c][20mm]{25mm}{Quantity} & \parbox{10mm}{283} & \parbox{10mm}{287} & \parbox{10mm}{5} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоРезовПлан * КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество листов в заказе.} \\
+\hline
+\parbox[c][15mm]{25mm}{Outs} & \parbox{10mm}{288} & \parbox{10mm}{288} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество полос в заказе.} \\
+\hline
+\parbox[c][15mm]{25mm}{Sheet width} & \parbox{10mm}{289} & \parbox{10mm}{292} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ШиринаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Ширина заготовки, мм.} \\
+\hline
+\parbox[c][18mm]{25mm}{Scorers' dimensions} & \parbox{10mm}{293} & \parbox{10mm}{391} & \parbox{10mm}{99} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. СтруктураРаскроев. Рилевки} & \parbox{11mm}{} & \parbox{89mm}{Размеры рилевок на ящик, разделенные пробелом, мм.} \\
+\hline
+\parbox[c][16mm]{25mm}{Index of scorers’ group} & \parbox{10mm}{392} & \parbox{10mm}{392} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Регистр ''Обмен с ГА: Типы рилевок'' (ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Индекс группы рилевок. Значение по умолчанию - ‘B’ (ASCII 42Hex). Возможные значения:
+‘A’ (ASCII 41Hex);
+‘B’ (ASCII 42Hex);
+‘C’ (ASCII 43Hex);
+‘D’ (ASCII 44Hex).} \\
+\hline
+\parbox[c][22mm]{25mm}{Type of positioning} & \parbox{10mm}{393} & \parbox{10mm}{393} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Регистр ''Обмен с ГА: Типы рилевок'' (ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Тип позиционирования рилевок. Значение по умолчанию - ''По центру'', '-' (ASCII 2DHex). Возможные значения:
+Нормальное смещение = '/' (ASCII 2FHex);
+От точки к точке = 'X' (ASCII 58Hex);
+Обратное смещение = '\' (ASCII 5CHex);
+По центру = '-' (ASCII 2DHex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Sheets per stack} & \parbox{10mm}{394} & \parbox{10mm}{397} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество листов в пачке. Значение по умолчанию - ‘0’ (ASCII 30Hex). Расчетный параметр, зависит от Типа изделия, Количества рядов пачек в паллете, Профиля, Размера заготовки и Максимального веса стопы (если указано в настройках СИСТЕМЫ).} \\
+\hline
+\parbox[c][15mm]{25mm}{Stacks per pallet} & \parbox{10mm}{398} & \parbox{10mm}{399} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество пачек на паллете. Равняется количеству полос.} \\
+\hline
+\parbox[c][20mm]{25mm}{Bundle/Pallet} & \parbox{10mm}{400} & \parbox{10mm}{400} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ТехнологическаяКарта. ВариантУпаковки. Поддон} & \parbox{11mm}{} & \parbox{89mm}{Тип группировки: на паллете или связка. Значение по умолчанию - ‘0’ (ASCII 30Hex). Если указан признак ''Поддон'', то ‘0’ (ASCII 30Hex), иначе ‘1’ (ASCII 31Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Take off side} & \parbox{10mm}{401} & \parbox{10mm}{401} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{С какой стороны отводятся готовые заготовки: справа, слева или спереди. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения:
+Справа = ‘0’ (ASCII 30Hex);
+Слева = ‘1’ (ASCII 31Hex);
+Спереди = ‘2’ (ASCII 32Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Sending of pallet} & \parbox{10mm}{402} & \parbox{10mm}{402} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Место перемещения паллет. Значение по умолчанию - ‘S’ (ASCII 53Hex). Возможные значения:
+Переработка = ‘T’ (ASCII 54Hex);
+Выпуск = ‘S’ (ASCII 53Hex);
+Прочее = ‘A’ (ASCII 41Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Material handling line} & \parbox{10mm}{403} & \parbox{10mm}{404} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ЗаказыНаЛиниях. Оборудование. Код} & \parbox{11mm}{} & \parbox{89mm}{Номер линии, на которую будут поставлены заготовки, где шаг = 2. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Name of the box factory machine} & \parbox{10mm}{405} & \parbox{10mm}{419} & \parbox{10mm}{15} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ЗаказыНаЛиниях. Оборудование. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование линии, на которую будут поставлены заготовки, где шаг = 2.} \\
+\hline
+\parbox[c][22mm]{25mm}{Balance} & \parbox{10mm}{420} & \parbox{10mm}{420} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип выработки заказа. Значение по умолчанию - ‘T’ (ASCII 54Hex). Возможные значения:
+Полностью = ‘T’ (ASCII 54Hex);
+Частично = ‘P’ (ASCII 50Hex);
+Брак = ‘X’ (ASCII 58Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Delivery date} & \parbox{10mm}{421} & \parbox{10mm}{428} & \parbox{10mm}{8} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ДатаОтгрузки} & \parbox{11mm}{} & \parbox{89mm}{Дата отгрузки заказа в формате (YYYYMMDD).} \\
+\hline
+\parbox[c][20mm]{25mm}{Product code} & \parbox{10mm}{429} & \parbox{10mm}{436} & \parbox{10mm}{8} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номенклатура. Код} & \parbox{11mm}{Да} & \parbox{89mm}{Код продукции.} \\
+\hline
+\parbox[c][20mm]{25mm}{Data to print 1} & \parbox{10mm}{437} & \parbox{10mm}{472} & \parbox{10mm}{36} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. СтруктураРаскроев. Композиция. КодДляFosber} & \parbox{11mm}{} & \parbox{89mm}{Код композиции в кодировке SYNCRO.} \\
+\hline
+\parbox[c][22mm]{25mm}{Data to print 2} & \parbox{10mm}{473} & \parbox{10mm}{487} & \parbox{10mm}{15} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ТехнологическаяКарта. ШиринаЗаготовки + 'x' + ДлинаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Размеры для печати на этикетке.} \\
+\hline
+\parbox[c][5mm]{25mm}{Data to print 3} & \parbox{10mm}{488} & \parbox{10mm}{547} & \parbox{10mm}{60} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Общие данные для печати на этикетке.} \\
+\hline
+\parbox[c][9mm]{25mm}{Data to print 4} & \parbox{10mm}{548} & \parbox{10mm}{557} & \parbox{10mm}{10} & \parbox{10mm}{N} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Данные по типу работы для печати.} \\*
+\hline
+\parbox[c][22mm]{25mm}{Pallet width} & \parbox{10mm}{558} & \parbox{10mm}{561} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''.Заказ. ТехнологическаяКарта. Поддон. ШиринаПоддона} & \parbox{11mm}{} & \parbox{89mm}{Ширина поддона.} \\
+\hline
+\parbox[c][22mm]{25mm}{Pallet length} & \parbox{10mm}{562} & \parbox{10mm}{565} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''.Заказ. ТехнологическаяКарта. Поддон. ДлинаПоддона} & \parbox{11mm}{} & \parbox{89mm}{Длина поддона.} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of pallet per width} & \parbox{10mm}{566} & \parbox{10mm}{567} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество паллет по ширине. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of pallet per length} & \parbox{10mm}{568} & \parbox{10mm}{569} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество паллет по длине. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][10mm]{25mm}{Double} & \parbox{10mm}{570} & \parbox{10mm}{570} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Двойная оптимизация. Значение по умолчанию - ‘0’ (ASCII 30Hex).
+Возможные значения:
+Нет = ‘0’ (ASCII 30Hex);
+Да = ‘1’ (ASCII 31Hex).} \\
+\hline
+\parbox[c][22mm]{25mm}{Type of binding} & \parbox{10mm}{571} & \parbox{10mm}{571} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип обвязки. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения: 
+Нет = ‘0’ (ASCII 30Hex);
+Лента = ‘1’ (ASCII 50Hex);
+Лента + уголки = ‘X’ (ASCII 58Hex).} \\
+\hline
+\parbox[c][5mm]{25mm}{Binding code} & \parbox{10mm}{572} & \parbox{10mm}{572} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Код номенклатуры обвязки.} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of edge-protections} & \parbox{10mm}{573} & \parbox{10mm}{574} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество защитных уголков. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][5mm]{25mm}{Notes} & \parbox{10mm}{575} & \parbox{10mm}{604} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Внутренний идентификатор задания СИСТЕМЫ.} & \parbox{11mm}{} & \parbox{89mm}{Данное поле содержит уникальный идентификатор раскроя, которое затем используется СИСТЕМОЙ для корректного позиционирования в документе для внесения изменений параметров раскроя или занесения факта выработки.} \\
+\hline
+{\bf \parbox[c][5mm]{25mm}{Заказ №2}} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{} \\
+\hline
+\parbox[c][13mm]{25mm}{Order number} & \parbox{10mm}{605} & \parbox{10mm}{616} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка'' Заказ. Номер} & \parbox{11mm}{} & \parbox{89mm}{Номер производственного заказа.} \\
+\hline
+\parbox[c][18mm]{25mm}{Customer} & \parbox{10mm}{617} & \parbox{10mm}{646} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Контрагент. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование заказчика.} \\
+\hline
+\parbox[c][5mm]{25mm}{Destination} & \parbox{10mm}{647} & \parbox{10mm}{676} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Адрес доставки.} \\
+\hline
+\parbox[c][5mm]{25mm}{Customer's town} & \parbox{10mm}{677} & \parbox{10mm}{696} & \parbox{10mm}{20} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Город доставки.} \\
+\hline
+\parbox[c][5mm]{25mm}{City code} & \parbox{10mm}{697} & \parbox{10mm}{698} & \parbox{10mm}{2} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Код города доставки.} \\
+\hline
+\parbox[c][15mm]{25mm}{Customer's code} & \parbox{10mm}{699} & \parbox{10mm}{710} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Контрагент. Код} & \parbox{11mm}{Да} & \parbox{89mm}{Код контрагента.} \\
+\hline
+\parbox[c][13mm]{25mm}{Level} & \parbox{10mm}{711} & \parbox{10mm}{711} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Стол} & \parbox{11mm}{} & \parbox{89mm}{Обозначение стола. Если номер стола 1, то ‘L’ (ASCII 4CHex), иначе ‘U’ (ASCII 55Hex).} \\
+\hline
+\parbox[c][15mm]{25mm}{Sheet length} & \parbox{10mm}{712} & \parbox{10mm}{715} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ДлинаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Длина заготовки, мм.} \\
+\hline
+\parbox[c][18mm]{25mm}{Quantity} & \parbox{10mm}{716} & \parbox{10mm}{720} & \parbox{10mm}{5} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоРезовПлан * КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество листов в заказе.} \\
+\hline
+\parbox[c][15mm]{25mm}{Outs} & \parbox{10mm}{721} & \parbox{10mm}{721} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество полос в заказе.} \\
+\hline
+\parbox[c][20mm]{25mm}{Sheet width} & \parbox{10mm}{722} & \parbox{10mm}{725} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ШиринаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Ширина заготовки, мм.} \\
+\hline
+\parbox[c][20mm]{25mm}{Scorers' dimensions} & \parbox{10mm}{726} & \parbox{10mm}{824} & \parbox{10mm}{99} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. СтруктураРаскроев. Рилевки} & \parbox{11mm}{} & \parbox{89mm}{Размеры рилевок на ящик, разделенные пробелом, мм.} \\
+\hline
+\parbox[c][22mm]{25mm}{Index of scorers’ group} & \parbox{10mm}{825} & \parbox{10mm}{825} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Регистр ''Обмен с ГА: Типы рилевок'' (ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Индекс группы рилевок. Значение по умолчанию - ‘B’ (ASCII 42Hex). Возможные значения:
+‘A’ (ASCII 41Hex);
+‘B’ (ASCII 42Hex);
+‘C’ (ASCII 43Hex);
+‘D’ (ASCII 44Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Type of positioning} & \parbox{10mm}{826} & \parbox{10mm}{826} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Регистр ''Обмен с ГА: Типы рилевок'' (ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Тип позиционирования рилевок. Значение по умолчанию - по центру, '-' (ASCII 2DHex). Возможные значения:
+Нормальное смещение = '/' (ASCII 2FHex);
+От точки к точке = 'X' (ASCII 58Hex);
+Обратное смещение = '\' (ASCII 5CHex);
+По центру = '-' (ASCII 2DHex).}  \\
+\hline
+\parbox[c][22mm]{25mm}{Sheets per stack} & \parbox{10mm}{827} & \parbox{10mm}{830} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество листов в пачке. Значение по умолчанию - ‘0’ (ASCII 30Hex). Расчетный параметр, зависит от Типа изделия, Количества рядов пачек в паллете, Профиля, Размера заготовки и Максимального веса стопы (если указано в настройках СИСТЕМЫ).} \\
+\hline
+\parbox[c][22mm]{25mm}{Stacks per pallet} & \parbox{10mm}{831} & \parbox{10mm}{832} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество пачек на паллете. Равняется количеству полос.} \\
+\hline
+\parbox[c][22mm]{25mm}{Bundle/Pallet} & \parbox{10mm}{833} & \parbox{10mm}{833} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ТехнологическаяКарта. ВариантУпаковки. Поддон} & \parbox{11mm}{} & \parbox{89mm}{Тип группировки: на паллете или связка. Значение по умолчанию - ‘0’ (ASCII 30Hex). Если указан признак ''Поддон'', то ‘0’ (ASCII 30Hex), иначе ‘1’ (ASCII 31Hex).} \\
+\hline
+\parbox[c][26mm]{25mm}{Take off side} & \parbox{10mm}{834} & \parbox{10mm}{834} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{С какой стороны отводятся готовые заготовки: справа, слева или спереди. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения:
+Справа = ‘0’ (ASCII 30Hex);
+Слева = ‘1’ (ASCII 31Hex);
+Спереди = ‘2’ (ASCII 32Hex).} \\
+\hline
+\parbox[c][22mm]{25mm}{Sending of pallet} & \parbox{10mm}{835} & \parbox{10mm}{835} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Место перемещения паллет. Значение по умолчанию - ‘S’ (ASCII 53Hex). Возможные значения:
+Переработка = ‘T’ (ASCII 54Hex);
+Выпуск = ‘S’ (ASCII 53Hex);
+Прочее = ‘A’ (ASCII 41Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Material handling line} & \parbox{10mm}{836} & \parbox{10mm}{837} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ЗаказыНаЛиниях. Оборудование. Код} & \parbox{11mm}{} & \parbox{89mm}{Номер линии, на которую будут поставлены заготовки, где шаг = 2. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Name of the box factory machine} & \parbox{10mm}{838} & \parbox{10mm}{852} & \parbox{10mm}{15} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ЗаказыНаЛиниях. Оборудование. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование линии, на которую будут поставлены заготовки, где шаг = 2.} \\
+\hline
+\parbox[c][22mm]{25mm}{Balance} & \parbox{10mm}{853} & \parbox{10mm}{853} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип выработки заказа. Значение по умолчанию - ‘T’ (ASCII 54Hex). Возможные значения:
+Полностью = ‘T’ (ASCII 54Hex);
+Частично = ‘P’ (ASCII 50Hex);
+Брак = ‘X’ (ASCII 58Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Delivery date} & \parbox{10mm}{854} & \parbox{10mm}{861} & \parbox{10mm}{8} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ДатаОтгрузки} & \parbox{11mm}{} & \parbox{89mm}{Дата отгрузки заказа в формате (YYYYMMDD).} \\
+\hline
+\parbox[c][20mm]{25mm}{Product code} & \parbox{10mm}{862} & \parbox{10mm}{869} & \parbox{10mm}{8} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номенклатура. Код} & \parbox{11mm}{Да} & \parbox{89mm}{Код продукции.} \\
+\hline
+\parbox[c][20mm]{25mm}{Data to print 1} & \parbox{10mm}{870} & \parbox{10mm}{905} & \parbox{10mm}{36} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. СтруктураРаскроев. Композиция. КодДляFosber} & \parbox{11mm}{} & \parbox{89mm}{Код композиции в кодировке SYNCRO.} \\
+\hline
+\parbox[c][22mm]{25mm}{Data to print 2} & \parbox{10mm}{906} & \parbox{10mm}{920} & \parbox{10mm}{15} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ТехнологическаяКарта. ШиринаЗаготовки + 'x' + ДлинаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Размеры для печати на этикетке.} \\
+\hline
+\parbox[c][5mm]{25mm}{Data to print 3} & \parbox{10mm}{921} & \parbox{10mm}{980} & \parbox{10mm}{60} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Общие данные для печати на этикетке.} \\
+\hline
+\parbox[c][9mm]{25mm}{Data to print 4} & \parbox{10mm}{981} & \parbox{10mm}{990} & \parbox{10mm}{10} & \parbox{10mm}{N} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Данные по типу работы для печати.} \\
+\hline
+\parbox[c][22mm]{25mm}{Pallet width} & \parbox{10mm}{991} & \parbox{10mm}{994} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''.Заказ. ТехнологическаяКарта. Поддон. ШиринаПоддона} & \parbox{11mm}{} & \parbox{89mm}{Ширина поддона.} \\
+\hline
+\parbox[c][20mm]{25mm}{Pallet length} & \parbox{10mm}{995} & \parbox{10mm}{998} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''.Заказ. ТехнологическаяКарта. Поддон. ДлинаПоддона} & \parbox{11mm}{} & \parbox{89mm}{Длина поддона.} \\
+\hline
+\parbox[c][13mm]{25mm}{Number of pallet per width} & \parbox{10mm}{999} & \parbox{10mm}{1000} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество паллет по ширине. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][13mm]{25mm}{Number of pallet per length} & \parbox{10mm}{1001} & \parbox{10mm}{1002} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество паллет по длине. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][15mm]{25mm}{Double} & \parbox{10mm}{1003} & \parbox{10mm}{1003} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Двойная оптимизация. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения:
+Нет = ‘0’ (ASCII 30Hex);
+Да = ‘1’ (ASCII 31Hex).}\\
+\hline
+\parbox[c][18mm]{25mm}{Type of binding} & \parbox{10mm}{1004} & \parbox{10mm}{1004} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип обвязки. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения: 
+Нет = ‘0’ (ASCII 30Hex);
+Лента = ‘1’ (ASCII 50Hex);
+Лента + уголки = ‘X’ (ASCII 58Hex).} \\
+\hline
+\parbox[c][5mm]{25mm}{Binding code} & \parbox{10mm}{1005} & \parbox{10mm}{1005} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Код номенклатуры обвязки.} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of edge-protections} & \parbox{10mm}{1006} & \parbox{10mm}{1007} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество защитных уголков. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Notes} & \parbox{10mm}{1008} & \parbox{10mm}{1037} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Внутренний идентификатор задания СИСТЕМЫ.} & \parbox{11mm}{} & \parbox{89mm}{Данное поле содержит уникальный идентификатор раскроя, которое затем используется СИСТЕМОЙ для корректного позиционирования в документе для внесения изменений параметров раскроя или занесения факта выработки.} \\
+\hline
+{\bf \parbox[c][5mm]{25mm}{Заказ №3}} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{10mm}{} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{} \\
+\hline
+\parbox[c][13mm]{25mm}{Order number} & \parbox{10mm}{1038} & \parbox{10mm}{1049} & \parbox{10mm}{12} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка'' Заказ. Номер} & \parbox{11mm}{} & \parbox{89mm}{Номер производственного заказа.} \\
+\hline
+\parbox[c][18mm]{25mm}{Customer} & \parbox{10mm}{1050} & \parbox{10mm}{1079} & \parbox{10mm}{30} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Контрагент. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование заказчика.} \\
+\hline
+\parbox[c][5mm]{25mm}{Destination} & \parbox{10mm}{1080} & \parbox{10mm}{1109} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Адрес доставки.} \\
+\hline
+\parbox[c][5mm]{25mm}{Customer's town} & \parbox{10mm}{1110} & \parbox{10mm}{1129} & \parbox{10mm}{20} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Город доставки.} \\
+\hline
+\parbox[c][5mm]{25mm}{City code} & \parbox{10mm}{1130} & \parbox{10mm}{1131} & \parbox{10mm}{2} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Код города доставки.} \\
+\hline
+\parbox[c][18mm]{25mm}{Customer's code} & \parbox{10mm}{1132} & \parbox{10mm}{1143} & \parbox{10mm}{12} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Контрагент. Код} & \parbox{11mm}{Да} & \parbox{89mm}{Код контрагента.} \\
+\hline
+\parbox[c][15mm]{25mm}{Level} & \parbox{10mm}{1144} & \parbox{10mm}{1144} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Стол} & \parbox{11mm}{} & \parbox{89mm}{Обозначение стола. Если номер стола 1, то ‘L’ (ASCII 4CHex), иначе ‘U’ (ASCII 55Hex).} \\
+\hline
+\parbox[c][18mm]{25mm}{Sheet length} & \parbox{10mm}{1145} & \parbox{10mm}{1148} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ДлинаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Длина заготовки, мм.} \\
+\hline
+\parbox[c][18mm]{25mm}{Quantity} & \parbox{10mm}{1149} & \parbox{10mm}{1153} & \parbox{10mm}{5} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоРезовПлан * КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество листов в заказе.} \\
+\hline
+\parbox[c][18mm]{25mm}{Outs} & \parbox{10mm}{1154} & \parbox{10mm}{1154} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество полос в заказе.} \\
+\hline
+\parbox[c][18mm]{25mm}{Sheet width} & \parbox{10mm}{1155} & \parbox{10mm}{1158} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ШиринаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Ширина заготовки, мм.} \\
+\hline
+\parbox[c][18mm]{25mm}{Scorers' dimensions} & \parbox{10mm}{1159} & \parbox{10mm}{1257} & \parbox{10mm}{99} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. СтруктураРаскроев. Рилевки} & \parbox{11mm}{} & \parbox{89mm}{Размеры рилевок на ящик, разделенные пробелом, мм.} \\
+\hline
+\parbox[c][22mm]{25mm}{Index of scorers’ group} & \parbox{10mm}{1258} & \parbox{10mm}{1258} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Регистр ''Обмен с ГА: Типы рилевок'' (ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Индекс группы рилевок. Значение по умолчанию - ‘B’ (ASCII 42Hex). Возможные значения:
+‘A’ (ASCII 41Hex);
+‘B’ (ASCII 42Hex);
+‘C’ (ASCII 43Hex);
+‘D’ (ASCII 44Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Type of positioning} & \parbox{10mm}{1259} & \parbox{10mm}{1259} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{Регистр ''Обмен с ГА: Типы рилевок'' (ТипРилевки)} & \parbox{11mm}{} & \parbox{89mm}{Тип позиционирования рилевок. Значение по умолчанию - по центру, '-' (ASCII 2DHex). Возможные значения:
+Нормальное смещение = '/' (ASCII 2FHex);
+От точки к точке = 'X' (ASCII 58Hex);
+Обратное смещение = '\' (ASCII 5CHex);
+По центру = '-' (ASCII 2DHex).}  \\
+\hline
+\parbox[c][20mm]{25mm}{Sheets per stack} & \parbox{10mm}{1260} & \parbox{10mm}{1263} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество листов в пачке. Значение по умолчанию - ‘0’ (ASCII 30Hex). Расчетный параметр, зависит от Типа изделия, Количества рядов пачек в паллете, Профиля, Размера заготовки и Максимального веса стопы (если указано в настройках СИСТЕМЫ).} \\
+\hline
+\parbox[c][20mm]{25mm}{Stacks per pallet} & \parbox{10mm}{1264} & \parbox{10mm}{1265} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} & \parbox{11mm}{} & \parbox{89mm}{Количество пачек на паллете. Равняется количеству полос.} \\
+\hline
+\parbox[c][22mm]{25mm}{Bundle/Pallet} & \parbox{10mm}{1266} & \parbox{10mm}{1266} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ТехнологическаяКарта. ВариантУпаковки. Поддон} & \parbox{11mm}{} & \parbox{89mm}{Тип группировки: на паллете или связка. Значение по умолчанию - ‘0’ (ASCII 30Hex). Если указан признак ''Поддон'', то ‘0’ (ASCII 30Hex), иначе ‘1’ (ASCII 31Hex).} \\
+\hline
+\parbox[c][26mm]{25mm}{Take off side} & \parbox{10mm}{1267} & \parbox{10mm}{1267} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{С какой стороны отводятся готовые заготовки: справа, слева или спереди. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения:
+Справа = ‘0’ (ASCII 30Hex);
+Слева = ‘1’ (ASCII 31Hex);
+Спереди = ‘2’ (ASCII 32Hex).} \\
+\hline
+\parbox[c][22mm]{25mm}{Sending of pallet} & \parbox{10mm}{1268} & \parbox{10mm}{1268} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Место перемещения паллет. Значение по умолчанию - ‘S’ (ASCII 53Hex). Возможные значения:
+Переработка = ‘T’ (ASCII 54Hex);
+Выпуск = ‘S’ (ASCII 53Hex);
+Прочее = ‘A’ (ASCII 41Hex).} \\
+\hline
+\parbox[c][18mm]{25mm}{Material handling line} & \parbox{10mm}{1269} & \parbox{10mm}{1270} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ЗаказыНаЛиниях. Оборудование. Код} & \parbox{11mm}{} & \parbox{89mm}{Номер линии, на которую будут поставлены заготовки, где шаг = 2. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][18mm]{25mm}{Name of the box factory machine} & \parbox{10mm}{1271} & \parbox{10mm}{1285} & \parbox{10mm}{15} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. ЗаказыНаЛиниях. Оборудование. Наименование} & \parbox{11mm}{Да} & \parbox{89mm}{Наименование линии, на которую будут поставлены заготовки, где шаг = 2.} \\
+\hline
+\parbox[c][22mm]{25mm}{Balance} & \parbox{10mm}{1286} & \parbox{10mm}{1286} & \parbox{10mm}{1} & \parbox{10mm}{A} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип выработки заказа. Значение по умолчанию - ‘T’ (ASCII 54Hex). Возможные значения:
+Полностью = ‘T’ (ASCII 54Hex);
+Частично = ‘P’ (ASCII 50Hex);
+Брак = ‘X’ (ASCII 58Hex).} \\
+\hline
+\parbox[c][18mm]{25mm}{Delivery date} & \parbox{10mm}{1287} & \parbox{10mm}{1294} & \parbox{10mm}{8} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ДатаОтгрузки} & \parbox{11mm}{} & \parbox{89mm}{Дата отгрузки заказа в формате (YYYYMMDD).} \\
+\hline
+\parbox[c][18mm]{25mm}{Product code} & \parbox{10mm}{1295} & \parbox{10mm}{1302} & \parbox{10mm}{8} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номенклатура. Код} & \parbox{11mm}{Да} & \parbox{89mm}{Код продукции.} \\
+\hline
+\parbox[c][18mm]{25mm}{Data to print 1} & \parbox{10mm}{1303} & \parbox{10mm}{1338} & \parbox{10mm}{36} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. План. СтруктураРаскроев. Композиция. КодДляFosber} & \parbox{11mm}{} & \parbox{89mm}{Код композиции в кодировке SYNCRO.} \\
+\hline
+\parbox[c][22mm]{25mm}{Data to print 2} & \parbox{10mm}{1339} & \parbox{10mm}{1353} & \parbox{10mm}{15} & \parbox{10mm}{A} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. ТехнологическаяКарта. ШиринаЗаготовки + 'x' + ДлинаЗаготовки} & \parbox{11mm}{} & \parbox{89mm}{Размеры для печати на этикетке.} \\
+\hline
+\parbox[c][5mm]{25mm}{Data to print 3} & \parbox{10mm}{1354} & \parbox{10mm}{1413} & \parbox{10mm}{60} & \parbox{10mm}{A} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Общие данные для печати на этикетке.} \\
+\hline
+\parbox[c][9mm]{25mm}{Data to print 4} & \parbox{10mm}{1414} & \parbox{10mm}{1423} & \parbox{10mm}{10} & \parbox{10mm}{N} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Данные по типу работы для печати.} \\
+\hline
+\parbox[c][22mm]{25mm}{Pallet width} & \parbox{10mm}{1424} & \parbox{10mm}{1427} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''.Заказ. ТехнологическаяКарта. Поддон. ШиринаПоддона} & \parbox{11mm}{} & \parbox{89mm}{Ширина поддона.} \\
+\hline
+\parbox[c][22mm]{25mm}{Pallet length} & \parbox{10mm}{1428} & \parbox{10mm}{1431} & \parbox{10mm}{4} & \parbox{10mm}{N} & \parbox{49mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''.Заказ. ТехнологическаяКарта. Поддон. ДлинаПоддона} & \parbox{11mm}{} & \parbox{89mm}{Длина поддона.} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of pallet per width} & \parbox{10mm}{1432} & \parbox{10mm}{1433} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество паллет по ширине. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of pallet per length} & \parbox{10mm}{1434} & \parbox{10mm}{1435} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество паллет по длине. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][10mm]{25mm}{Double} & \parbox{10mm}{1436} & \parbox{10mm}{1436} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Двойная оптимизация.
+Возможные значения:
+Нет = ‘0’ (ASCII 30Hex);
+Да = ‘1’ (ASCII 31Hex).} \\
+\hline
+\parbox[c][22mm]{25mm}{Type of binding} & \parbox{10mm}{1437} & \parbox{10mm}{1437} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Тип обвязки. Значение по умолчанию - ‘0’ (ASCII 30Hex). Возможные значения: 
+Нет = ‘0’ (ASCII 30Hex);
+Лента = ‘1’ (ASCII 50Hex);
+Лента + уголки = ‘X’ (ASCII 58Hex).} \\
+\hline
+\parbox[c][5mm]{25mm}{Binding code} & \parbox{10mm}{1438} & \parbox{10mm}{1438} & \parbox{10mm}{1} & \parbox{10mm}{N} & \parbox{49mm}{Пустая строка} & \parbox{11mm}{} & \parbox{89mm}{Код номенклатуры обвязки.} \\
+\hline
+\parbox[c][8mm]{25mm}{Number of edge-protections} & \parbox{10mm}{1439} & \parbox{10mm}{1440} & \parbox{10mm}{2} & \parbox{10mm}{N} & \parbox{49mm}{} & \parbox{11mm}{} & \parbox{89mm}{Количество защитных уголков. Значение по умолчанию - ‘0’ (ASCII 30Hex).} \\
+\hline
+\parbox[c][20mm]{25mm}{Notes} & \parbox{10mm}{1441} & \parbox{10mm}{1470} & \parbox{10mm}{30} & \parbox{10mm}{A} & \parbox{49mm}{Внутренний идентификатор задания СИСТЕМЫ.} & \parbox{11mm}{} & \parbox{89mm}{Данное поле содержит уникальный идентификатор раскроя, которое затем используется СИСТЕМОЙ для корректного позиционирования в документе для внесения изменений параметров раскроя или занесения факта выработки.} \\
+\hline
+\caption{Структура блока параметров раскроя для передачи из СИСТЕМЫ в SYNCRO, а также для получения информации обратно.}\label{tab:fosber_block}
+\end{longtable}
+
+\end{landscape} 
+
+\normalsize
+
+
+% ТЕКУЩИЙ СТАТУС
+
+\scriptsize
+\begin{landscape}
+Структура блока сообщения текущего статуса из SYNCRO в СИСТЕМУ представлена в таблице \ref{tab:fosber_status}.
+% Table generated by Excel2LaTeX from sheet 'Обратно'
+\scriptsize
+
+\begin{longtable}{|p{45mm}|p{6mm}|p{6mm}|p{8mm}|p{6mm}|p{70mm}|p{80mm}|}
+\hline
+\parbox[c][10mm]{45mm}{\centering Поле} & \parbox{6mm}{\centering С} & \parbox{6mm}{\centering По} & \parbox{8mm}{\centering Длина} & \parbox{5mm}{\centering Тип} & \parbox{70mm}{\centering Комментарий}  & \parbox{80mm}{\centering Opti-Corrugated} \\
+\hline
+\parbox[c][12mm]{45mm}{\raggedright Number of orders in the waiting job list} & \parbox[c]{9mm}{\centering 1} & \parbox[c]{9mm}{\centering 3} & \parbox[c]{11mm}{\centering 3} & \parbox[c]{10mm}{\centering N} & \parbox[c]{80mm}{\raggedright Количество заказов в очереди.} & \parbox[c]{80mm}{\raggedright} \\
+\hline
+\parbox[c][10mm]{45mm}{Actual speed} & \parbox{9mm}{4} & \parbox{9mm}{7} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Текущая скорость гофроагрегата.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Форма. Текстовое поле ''Инфо Fosber''.} \\
+\hline
+\parbox[c][10mm]{45mm}{Average speed} & \parbox{9mm}{8} & \parbox{9mm}{11} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Средняя скорость гофроагрегата.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Форма. Текстовое поле ''Инфо Fosber''.} \\
+\hline
+\parbox[c][13mm]{45mm}{Linear Meters produced from the beginning of the order} & \parbox{9mm}{12} & \parbox{9mm}{20} & \parbox{11mm}{9} & \parbox{10mm}{N} & \parbox{70mm}{Количество метров, произведенных по заказу.} & \parbox{50mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Current Run ID 1} & \parbox{9mm}{21} & \parbox{9mm}{24} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Текущий идентификатор раскроя (1000 - 9999).} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Форма. Текстовое поле ''Инфо Fosber''.} \\
+\hline
+\parbox[c][10mm]{45mm}{Next Run ID 1} & \parbox{9mm}{25} & \parbox{9mm}{28} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Следующий идентификатор раскроя (1000 - 9999).} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Форма. Текстовое поле ''Инфо Fosber''.} \\
+\hline
+\parbox[c][5mm]{45mm}{Total good meters} & \parbox{9mm}{29} & \parbox{9mm}{37} & \parbox{11mm}{9} & \parbox{10mm}{N} & \parbox{70mm}{Всего метров, произведенных с начала смены.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][12mm]{45mm}{Total scrap meters from shift's start} & \parbox{9mm}{38} & \parbox{9mm}{46} & \parbox{11mm}{9} & \parbox{10mm}{N} & \parbox{70mm}{Всего брака с начала смены, в метрах.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][5mm]{45mm}{Free} & \parbox{9mm}{47} & \parbox{9mm}{62} & \parbox{11mm}{16} & \parbox{10mm}{N} & \parbox{70mm}{Не используется.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][5mm]{45mm}{Rest meters} & \parbox{9mm}{63} & \parbox{9mm}{71} & \parbox{11mm}{9} & \parbox{10mm}{N} & \parbox{70mm}{Остаток метров до смены бумаги.} & \parbox{80mm}{} \\
+\hline
+{\bf\parbox[c][13mm]{45mm}{Стол №1}} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{80mm}{} & \parbox{70mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 1} & \parbox{9mm}{72} & \parbox{9mm}{75} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. Номер связки} \\
+\hline
+\parbox[c][10mm]{45mm}{Order number} & \parbox{9mm}{76} & \parbox{9mm}{87} & \parbox{11mm}{12} & \parbox{10mm}{N} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номер} \\
+\hline
+\parbox[c][8mm]{45mm}{Nr of discharges} & \parbox{9mm}{88} & \parbox{9mm}{89} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество смен рулонов с начала заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Out} & \parbox{9mm}{90} & \parbox{9mm}{91} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество полос в заказе.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][10mm]{45mm}{Number sheets per stack} & \parbox{9mm}{92} & \parbox{9mm}{95} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Количество листов в пачке.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][5mm]{45mm}{Aoc} & \parbox{9mm}{96} & \parbox{9mm}{96} & \parbox{11mm}{1} & \parbox{10mm}{N} & \parbox{80mm}{Флаг последней пачки.} & \parbox{80mm}{} \\
+\hline
+{\bf \parbox[c][5mm]{45mm}{Стол  №2}} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{70mm}{} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 1} & \parbox{9mm}{97} & \parbox{9mm}{100} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. НомерСвязки} \\
+\hline
+\parbox[c][10mm]{45mm}{Order number} & \parbox{9mm}{101} & \parbox{9mm}{112} & \parbox{11mm}{12} & \parbox{10mm}{N} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номер} \\
+\hline
+\parbox[c][8mm]{45mm}{Nr of discharges} & \parbox{9mm}{113} & \parbox{9mm}{114} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество смен рулонов с начала заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Out} & \parbox{9mm}{115} & \parbox{9mm}{116} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество полос в заказе.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][5mm]{45mm}{Number sheets per stack} & \parbox{9mm}{117} & \parbox{9mm}{120} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Количество листов в пачке.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][5mm]{45mm}{Aoc} & \parbox{9mm}{121} & \parbox{9mm}{121} & \parbox{11mm}{1} & \parbox{10mm}{N} & \parbox{70mm}{Флаг последней пачки.} & \parbox{80mm}{} \\
+\hline
+{\bf \parbox[c][5mm]{45mm}{Стол №3}} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{70mm}{} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 1} & \parbox{9mm}{122} & \parbox{9mm}{125} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Order number} & \parbox{9mm}{126} & \parbox{9mm}{137} & \parbox{11mm}{12} & \parbox{10mm}{N} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][8mm]{45mm}{Nr of discharges} & \parbox{9mm}{138} & \parbox{9mm}{139} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество смен рулонов с начала заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Out} & \parbox{9mm}{140} & \parbox{9mm}{141} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество полос.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][5mm]{45mm}{Number sheets per stack} & \parbox{9mm}{142} & \parbox{9mm}{145} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Количество листов в пачке.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][5mm]{45mm}{Aoc} & \parbox{9mm}{146} & \parbox{9mm}{146} & \parbox{11mm}{1} & \parbox{10mm}{N} & \parbox{70mm}{Флаг последней пачки.} & \parbox{80mm}{} \\
+\hline
+\caption{Структура блока сообщения текущего статуса из SYNCRO в СИСТЕМУ}\label{tab:fosber_status}
+\end{longtable}  
+\normalsize
+
+\end{landscape} 
+\normalsize
+
+
+
+
+
+% СПИСОК ЗАДАНИЙ
+
+\scriptsize
+\begin{landscape}
+Структура блока сообщения о номерах выполненных и невыполненных заданий из SYNCRO в СИСТЕМУ представлена в таблице \ref{tab:fosber_list}.
+\scriptsize
+
+\begin{longtable}{|p{45mm}|p{6mm}|p{6mm}|p{8mm}|p{6mm}|p{70mm}|p{80mm}|}
+\hline
+\parbox[c][10mm]{45mm}{\centering Поле} & \parbox{6mm}{\centering С} & \parbox{6mm}{\centering По} & \parbox{8mm}{\centering Длина} & \parbox{5mm}{\centering Тип} & \parbox{70mm}{\centering Комментарий}  & \parbox{80mm}{\centering Opti-Corrugated} \\
+\hline
+\parbox[c][5mm]{45mm}{Number of orders in the list} & \parbox{9mm}{1} & \parbox{9mm}{3} & \parbox{11mm}{3} & \parbox{10mm}{N} & \parbox{70mm}{Количество раскроев в списке.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 1 (1) + Mod ID (1)} & \parbox{9mm}{4} & \parbox{9mm}{9} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки раскроя №1 из списка.} & \parbox{80mm}{По данному идентификатору определяется либо успех загрузки раскроя SYNCRO, либо его готовность.} \\
+\hline
+\parbox[c][5mm]{45mm}{Run ID 1 (2) + Mod ID (2)} & \parbox{9mm}{4} & \parbox{9mm}{9} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки раскроя №2 из списка.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][5mm]{45mm}{...} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{70mm}{} & \parbox{80mm}{} \\
+\hline
+\parbox[c][5mm]{45mm}{Run ID 1 (300) + Mod ID (300)} & \parbox{9mm}{1798} & \parbox{9mm}{1803} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки раскроя №300 из списка.} & \parbox{80mm}{} \\
+\hline
+\caption{Структура блока сообщения о номерах выполненных и невыполненных заданий из SYNCRO в СИСТЕМУ}\label{tab:fosber_list}
+\end{longtable}  
+\normalsize
+
+\end{landscape} 
+\normalsize
+
+
+
+
+% ДАННЫЕ ВЫРАБОТКИ
+
+\scriptsize
+\begin{landscape}
+Структура блока сообщения о выполненных раскроях из SYNCRO в СИСТЕМУ представлена в таблице \ref{tab:fosber_completed}.
+\scriptsize
+
+\begin{longtable}{|p{45mm}|p{6mm}|p{6mm}|p{8mm}|p{6mm}|p{70mm}|p{80mm}|}
+\hline
+\parbox[c][10mm]{45mm}{\centering Поле} & \parbox{6mm}{\centering С} & \parbox{6mm}{\centering По} & \parbox{8mm}{\centering Длина} & \parbox{5mm}{\centering Тип} & \parbox{70mm}{\centering Комментарий}  & \parbox{80mm}{\centering Opti-Corrugated} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 1} & \parbox{9mm}{1} & \parbox{9mm}{4} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. Номер связки} \\
+\hline
+\parbox[c][10mm]{45mm}{Modifications Id} & \parbox{9mm}{5} & \parbox{9mm}{6} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Номер модификации.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 2} & \parbox{9mm}{7} & \parbox{9mm}{17} & \parbox{11mm}{11} & \parbox{10mm}{A} & \parbox{70mm}{Идентификатор задания.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. ID Задания} \\
+\hline
+\parbox[c][10mm]{45mm}{Shift manager} & \parbox{9mm}{18} & \parbox{9mm}{22} & \parbox{11mm}{5} & \parbox{10mm}{A} & \parbox{70mm}{Мастер смены.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Start Date} & \parbox{9mm}{23} & \parbox{9mm}{30} & \parbox{11mm}{8} & \parbox{10mm}{N} & \parbox{70mm}{Дата начала.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. ВремяНачалаОбработкиРаскроя} \\
+\hline
+\parbox[c][10mm]{45mm}{End Date} & \parbox{9mm}{31} & \parbox{9mm}{38} & \parbox{11mm}{8} & \parbox{10mm}{N} & \parbox{70mm}{Дата окончания.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. ВремяОкончанияОбработкиРаскроя} \\
+\hline
+\parbox[c][10mm]{45mm}{Start Time} & \parbox{9mm}{39} & \parbox{9mm}{46} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Время начала.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. ВремяНачалаОбработкиРаскроя} \\
+\hline
+\parbox[c][10mm]{45mm}{End Time} & \parbox{9mm}{47} & \parbox{9mm}{54} & \parbox{11mm}{8} & \parbox{10mm}{N} & \parbox{70mm}{Время окончания.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Раскрои''. ВремяОкончанияОбработкиРаскроя} \\
+\hline
+\parbox[c][10mm]{45mm}{Shift ID} & \parbox{9mm}{55} & \parbox{9mm}{55} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Идентификатор смены.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Number of people per shift} & \parbox{9mm}{56} & \parbox{9mm}{57} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Количество работников смены.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Stop time} & \parbox{9mm}{58} & \parbox{9mm}{65} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Время простоев в течение задания.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Number of stops} & \parbox{9mm}{66} & \parbox{9mm}{70} & \parbox{11mm}{5} & \parbox{10mm}{A} & \parbox{70mm}{Количество остановов в течение задания.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Worked time} & \parbox{9mm}{71} & \parbox{9mm}{78} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Полезное время работы.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Sheets for upper stack} & \parbox{9mm}{79} & \parbox{9mm}{83} & \parbox{11mm}{5} & \parbox{10mm}{N} & \parbox{70mm}{Количество листов верхнего стола.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Sheets for medium stack} & \parbox{9mm}{84} & \parbox{9mm}{88} & \parbox{11mm}{5} & \parbox{10mm}{N} & \parbox{70mm}{Количество листов центрального стола.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Sheets for lower stack} & \parbox{9mm}{89} & \parbox{9mm}{93} & \parbox{11mm}{5} & \parbox{10mm}{N} & \parbox{70mm}{Количество листов нижнего стола.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Board width} & \parbox{9mm}{94} & \parbox{9mm}{97} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Формат.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Actual produced meters} & \parbox{9mm}{98} & \parbox{9mm}{106} & \parbox{11mm}{9} & \parbox{10mm}{N} & \parbox{70mm}{Выработано всего, метров.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Theoretical meters to be produced} & \parbox{9mm}{107} & \parbox{9mm}{111} & \parbox{11mm}{5} & \parbox{10mm}{N} & \parbox{70mm}{Плановая выработка, метров.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Flute type} & \parbox{9mm}{112} & \parbox{9mm}{114} & \parbox{11mm}{3} & \parbox{10mm}{A} & \parbox{70mm}{Профиль.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Flute composition code} & \parbox{9mm}{115} & \parbox{9mm}{150} & \parbox{11mm}{36} & \parbox{10mm}{A} & \parbox{70mm}{Код композиции.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Average production speed} & \parbox{9mm}{151} & \parbox{9mm}{154} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Средняя скорость выработки.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Run ID 1} & \parbox{9mm}{155} & \parbox{9mm}{158} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Номер связки.} & \parbox{80mm}{} \\
+\hline
+{\bf \parbox[c][10mm]{45mm}{Заказ №1}} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{70mm}{} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Order number} & \parbox{9mm}{159} & \parbox{9mm}{170} & \parbox{11mm}{12} & \parbox{10mm}{A} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номер} \\
+\hline
+\parbox[c][10mm]{45mm}{Box width} & \parbox{9mm}{171} & \parbox{9mm}{174} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Ширина заготовки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ШиринаЗаготовки} \\
+\hline
+\parbox[c][10mm]{45mm}{Box length} & \parbox{9mm}{175} & \parbox{9mm}{178} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Длина заготовки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ДлинаЗаготовки} \\
+\hline
+\parbox[c][10mm]{45mm}{Scorers’ measures} & \parbox{9mm}{179} & \parbox{9mm}{277} & \parbox{11mm}{99} & \parbox{10mm}{N} & \parbox{70mm}{Рилевки.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Outs} & \parbox{9mm}{278} & \parbox{9mm}{278} & \parbox{11mm}{1} & \parbox{10mm}{N} & \parbox{70mm}{Количество полос.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][10mm]{45mm}{Sheets carried out} & \parbox{9mm}{279} & \parbox{9mm}{284} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Количество заготовок.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоЗаготовокФакт} \\
+\hline
+\parbox[c][10mm]{45mm}{Scrap sheets} & \parbox{9mm}{285} & \parbox{9mm}{290} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Брак заготовок.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. БракВРаботе} \\
+\hline
+\parbox[c][10mm]{45mm}{Balance} & \parbox{9mm}{291} & \parbox{9mm}{291} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Тип выработки заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Sending of pallet} & \parbox{9mm}{292} & \parbox{9mm}{292} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Тип выпуска заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Material handling line} & \parbox{9mm}{293} & \parbox{9mm}{294} & \parbox{11mm}{2} & \parbox{10mm}{A} & \parbox{70mm}{Код следующей линии.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Name of the box factory machine} & \parbox{9mm}{295} & \parbox{9mm}{309} & \parbox{11mm}{15} & \parbox{10mm}{A} & \parbox{70mm}{Наименование следующей линии.} & \parbox{80mm}{} \\
+\hline
+{\bf \parbox[c][10mm]{45mm}{Заказ №2}} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{70mm}{} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Order number} & \parbox{9mm}{310} & \parbox{9mm}{321} & \parbox{11mm}{12} & \parbox{10mm}{A} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номер} \\
+\hline
+\parbox[c][10mm]{45mm}{Box width} & \parbox{9mm}{322} & \parbox{9mm}{325} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Ширина заготовки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ШиринаЗаготовки} \\
+\hline
+\parbox[c][10mm]{45mm}{Box length} & \parbox{9mm}{326} & \parbox{9mm}{329} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Длина заготовки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ДлинаЗаготовки} \\
+\hline
+\parbox[c][10mm]{45mm}{Scorers’ measures} & \parbox{9mm}{330} & \parbox{9mm}{428} & \parbox{11mm}{99} & \parbox{10mm}{N} & \parbox{70mm}{Рилевки.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Outs} & \parbox{9mm}{429} & \parbox{9mm}{429} & \parbox{11mm}{1} & \parbox{10mm}{N} & \parbox{70mm}{Количество полос.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][10mm]{45mm}{Sheets carried out} & \parbox{9mm}{430} & \parbox{9mm}{435} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Количество заготовок.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоЗаготовокФакт} \\
+\hline
+\parbox[c][10mm]{45mm}{Scrap sheets} & \parbox{9mm}{436} & \parbox{9mm}{441} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Брак заготовок.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. БракВРаботе} \\
+\hline
+\parbox[c][10mm]{45mm}{Balance} & \parbox{9mm}{442} & \parbox{9mm}{442} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Тип выработки заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Sending of pallet} & \parbox{9mm}{443} & \parbox{9mm}{443} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Тип выпуска заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Material handling line} & \parbox{9mm}{444} & \parbox{9mm}{445} & \parbox{11mm}{2} & \parbox{10mm}{A} & \parbox{70mm}{Код следующей линии.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Name of the box factory machine} & \parbox{9mm}{446} & \parbox{9mm}{460} & \parbox{11mm}{15} & \parbox{10mm}{A} & \parbox{70mm}{Наименование следующей линии.} & \parbox{80mm}{} \\
+\hline
+{\bf \parbox[c][10mm]{45mm}{Заказ №3}} & \parbox{9mm}{} & \parbox{9mm}{} & \parbox{11mm}{} & \parbox{10mm}{} & \parbox{70mm}{} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Order number} & \parbox{9mm}{461} & \parbox{9mm}{472} & \parbox{11mm}{12} & \parbox{10mm}{A} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. Заказ. Номер} \\
+\hline
+\parbox[c][10mm]{45mm}{Box width} & \parbox{9mm}{473} & \parbox{9mm}{476} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Ширина заготовки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ШиринаЗаготовки} \\
+\hline
+\parbox[c][10mm]{45mm}{Box length} & \parbox{9mm}{477} & \parbox{9mm}{480} & \parbox{11mm}{4} & \parbox{10mm}{N} & \parbox{70mm}{Длина заготовки.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. ДлинаЗаготовки} \\
+\hline
+\parbox[c][10mm]{45mm}{Scorers’ measures} & \parbox{9mm}{481} & \parbox{9mm}{579} & \parbox{11mm}{99} & \parbox{10mm}{N} & \parbox{70mm}{Рилевки.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Outs} & \parbox{9mm}{580} & \parbox{9mm}{580} & \parbox{11mm}{1} & \parbox{10mm}{N} & \parbox{70mm}{Количество полос.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоПолос} \\
+\hline
+\parbox[c][10mm]{45mm}{Sheets carried out} & \parbox{9mm}{581} & \parbox{9mm}{586} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Количество заготовок.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. КоличествоЗаготовокФакт} \\
+\hline
+\parbox[c][10mm]{45mm}{Scrap sheets} & \parbox{9mm}{587} & \parbox{9mm}{592} & \parbox{11mm}{6} & \parbox{10mm}{N} & \parbox{70mm}{Брак заготовок.} & \parbox{80mm}{Документ ''ОтчетПроизводстваЛГК''. Таблица ''Выработка''. БракВРаботе} \\
+\hline
+\parbox[c][10mm]{45mm}{Balance} & \parbox{9mm}{593} & \parbox{9mm}{593} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Тип выработки заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Sending of pallet} & \parbox{9mm}{594} & \parbox{9mm}{594} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Тип выпуска заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Material handling line} & \parbox{9mm}{595} & \parbox{9mm}{596} & \parbox{11mm}{2} & \parbox{10mm}{A} & \parbox{70mm}{Код следующей линии.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Name of the box factory machine} & \parbox{9mm}{597} & \parbox{9mm}{611} & \parbox{11mm}{15} & \parbox{10mm}{A} & \parbox{70mm}{Наименование следующей линии.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Free} & \parbox{9mm}{612} & \parbox{9mm}{645} & \parbox{11mm}{34} & \parbox{10mm}{A} & \parbox{70mm}{Не используется.} & \parbox{80mm}{} \\
+\hline
+
+\caption{Структура блока сообщения о выполненных раскроях из SYNCRO в СИСТЕМУ}\label{tab:fosber_completed}
+\end{longtable}  
+\normalsize
+
+\end{landscape} 
+\normalsize
+
+% ДАННЫЕ ОСТАНОВОВ
+
+\scriptsize
+\begin{landscape}
+Структура блока сообщения об остановах из SYNCRO в СИСТЕМУ представлена в таблице \ref{tab:fosber_stoppage}.
+
+ВНИМАНИЕ. Структура изменена.
+
+\scriptsize
+
+\begin{longtable}{|p{45mm}|p{6mm}|p{6mm}|p{8mm}|p{6mm}|p{70mm}|p{80mm}|}
+\hline
+\parbox[c][10mm]{45mm}{\centering Поле} & \parbox{6mm}{\centering С} & \parbox{6mm}{\centering По} & \parbox{8mm}{\centering Длина} & \parbox{5mm}{\centering Тип} & \parbox{70mm}{\centering Комментарий}  & \parbox{80mm}{\centering Opti-Corrugated} \\
+
+\hline
+\parbox[c][10mm]{45mm}{Code that cause of stoppage } & \parbox{9mm}{1} & \parbox{9mm}{4} & \parbox{11mm}{4} & \parbox{10mm}{A} & \parbox{70mm}{Код причины останова.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Комментарий} \\
+\hline
+\parbox[c][10mm]{45mm}{Description that cause of stoppage} & \parbox{9mm}{5} & \parbox{9mm}{24} & \parbox{11mm}{20} & \parbox{10mm}{A} & \parbox{70mm}{Описание причины останова.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Комментарий} \\
+\hline
+\parbox[c][10mm]{45mm}{Stopping area’s code} & \parbox{9mm}{25} & \parbox{9mm}{28} & \parbox{11mm}{4} & \parbox{10mm}{A} & \parbox{70mm}{Код области, в которой произошел останов.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Комментарий} \\
+\hline
+\parbox[c][10mm]{45mm}{Description of stopping area} & \parbox{9mm}{29} & \parbox{9mm}{48} & \parbox{11mm}{20} & \parbox{10mm}{A} & \parbox{70mm}{Описание области, в которой произошел останов.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Комментарий} \\
+\hline
+\parbox[c][10mm]{45mm}{Stoppage time} & \parbox{9mm}{49} & \parbox{9mm}{56} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Общее время простоя.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Start date } & \parbox{9mm}{57} & \parbox{9mm}{64} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Дата начала останова.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Период} \\
+\hline
+\parbox[c][10mm]{45mm}{End date} & \parbox{9mm}{65} & \parbox{9mm}{72} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Дата окончания останова.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Период} \\
+\hline
+\parbox[c][10mm]{45mm}{Start time} & \parbox{9mm}{73} & \parbox{9mm}{80} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Время начала останова.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Период} \\
+\hline
+\parbox[c][10mm]{45mm}{End time} & \parbox{9mm}{81} & \parbox{9mm}{88} & \parbox{11mm}{8} & \parbox{10mm}{A} & \parbox{70mm}{Время окончания останова.} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Период} \\
+\hline
+\parbox[c][10mm]{45mm}{Order’s code} & \parbox{9mm}{89} & \parbox{9mm}{92} & \parbox{11mm}{4} & \parbox{10mm}{A} & \parbox{70mm}{Номер заказа.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Modifications} & \parbox{9mm}{93} & \parbox{9mm}{94} & \parbox{11mm}{2} & \parbox{10mm}{N} & \parbox{70mm}{Номер модификации.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Shift} & \parbox{9mm}{95} & \parbox{9mm}{95} & \parbox{11mm}{1} & \parbox{10mm}{A} & \parbox{70mm}{Номер смены.} & \parbox{80mm}{} \\
+\hline
+\parbox[c][10mm]{45mm}{Comments} & \parbox{9mm}{96} & \parbox{9mm}{295} & \parbox{11mm}{200} & \parbox{10mm}{A} & \parbox{70mm}{Комментарий, добавленный оператором} & \parbox{80mm}{Регистр ''Журнал работы оборудования''. Комментарий} \\
+\hline
+\parbox[c][10mm]{45mm}{Free} & \parbox{9mm}{296} & \parbox{9mm}{345} & \parbox{11mm}{50} & \parbox{10mm}{A} & \parbox{70mm}{Не используется.} & \parbox{80mm}{} \\
+\hline
+
+\caption{Структура блока сообщения об остановах из SYNCRO в СИСТЕМУ}\label{tab:fosber_stoppage}
+\end{longtable}  
+\normalsize
+
+\end{landscape} 
+\normalsize
+
+%------------------------------------------------------------------
+
+\subsection{Функциональные требования}
+
+\subsubsection{Подключиться к SYNCRO}
+
+При нажатии на кнопку ''Подключиться'' СИСТЕМА должна начать опрашивать SYNCRO с периодом, указанным в параметре ''ИнтервалОпроса'' в свойствах оборудования (справочник ''Оборудование''), указанного в документе выработки ''ОтчетПроизводстваЛГК''.
+
+При подключении оборудования СИСТЕМА должна формировать строку команды для SYNCRO с командой ''VE'' для получения данных выработки.
+Структура блока сообщения указана в таблице \ref{tab:fosber_completed}.
+По каждой полученной строке СИСТЕМА попытается определить раскрой. Если он уже есть в документе, то для него обновятся параметры, заполнится факт выработки, дата и время окончания, брак. Если такого раскроя нет, то СИСТЕМА по идентификатору Run ID 2 добавит раскрой из общего списка запланированных заданий, а затем также обновит параметры и заполнит фактические значения. В противном случае, СИСТЕМА сформирует сообщение об ошибке. 
+
+Затем СИСТЕМА сформирует команду ''SE'' для получения текущего статуса.
+Структура блока сообщения указана в таблице \ref{tab:fosber_status}.
+Если идентификатор текущего раскроя документа совпадает с ответом SYNCRO, то для этого раскроя обновятся текущие показатели. Таким образом, фактические данные будут обновляться в режиме реального времени. 
+
+Если идентификатор раскроя из ответа SYNCRO отличается, тогда будут получены параметры текущего раскроя гофроагрегата командой ''LI''.
+Структура блока сообщения указана в таблице \ref{tab:fosber_block}.
+Далее СИСТЕМА определит, есть ли такой раскрой в документе выработки. Если есть - обновит его параметры, если нет - по идентификатору Run ID 2 добавит раскрой из общего списка запланированных заданий и обновит. Затем в документе изменится идентификатор текущего раскроя на текущий и продолжится чтение данных SYNCRO.
+
+\subsubsection{Добавить раскрои в SYNCRO}
+
+В форме редактирования документа ''ОтчетПроизводстваЛГК'' СИСТЕМА должна позволять выделять  несколько строк раскроев. 
+По нажатию на кнопку ''Выгрузить раскрои'' СИСТЕМА должна формировать отдельную строку команды ''PE'' по каждому раскрою отдельно.
+Структура блока сообщения указана в таблице \ref{tab:fosber_block}.
+
+При получении команды ''ОК'' от SYNCRO СИСТЕМА должна установить признак ''Выгружен'' для выгруженного раскроя.
+В противном случае СИСТЕМА должна выдавать сообщение об ошибке, полученное от SYNCRO.
+
+\subsubsection{Обновить раскрои из SYNCRO}
+
+СИСТЕМА должна автоматически обновлять параметры раскроя в течение сеанса, пока раскрой не будет выполнен на гофроагрегате.
+Параметры получаются из SYNCRO по идентификатору Run ID 1. Если СИСТЕМА не находит его, то возвращает сообщение об ошибке, в противном случае данные найденного раскроя обновляются данными SYNCRO.
+
+\subsubsection{Удалить раскрой в СИСТЕМЕ}
+
+По нажатию на кнопку ''Удалить раскрой'' СИСТЕМА не должна позволять удалить раскрой, если в нем заполнен факт выработки. Если раскрой ещё не вырабатывался, то ему СИСТЕМА устанавливает признак ''Не загружен'' и должна удалить раскрой из документа. 
+
+При удалении в СИСТЕМЕ необходимо посылать команду на удаление раскроя в SYNCRO 
+''CA'' + ID раскроя.
+
+Запустив список заказов, SYNCRO ищет один раскрой с тем же Run ID 1, что и указанный в поле ID данной команды. Если раскрой не найден, SYNCRO вернет сообщение об ошибке, в противном случае удаляет раскрой.
+
+\subsubsection{Удалить раскрой в СИСТЕМЕ в конце смены}
+
+При окончании смены по нажатию команды ''Завершить смену'' СИСТЕМА должна удалить раскрои в очереди на SYNCRO, которые остались выгруженными, но не выполненными.
+
+При удалении в СИСТЕМЕ необходимо посылать команду на удаление раскроя в SYNCRO 
+''CT'' + ID раскроя.
+ID раскроя - первый в списке невыполенных раскроев из плана.
+SYNCRO будет искать раскрой в очереди по ID. Если раскрой не найден, будет возвращено сообщение об ошибке. В другом случае SYNCRO удали все следующие за указанными раскрои в списке, начинающимся с найденного по ID раскрою.
+SYNCRO не может удалить первый и второй раскрой в очереди.
+
+
+\subsubsection{Удалить раскрой в SYNCRO}
+
+При удалении раскроя на стороне SYNCRO раскрой должен удаляться из списка раскроев в SYNCRO. При обновлении данных в СИСТЕМЕ необходимо проверить список текущих раскроев. Удаленный на стороне SYNCRO раскрой должен быть помечен как "Не выгружен". 
+
+% Удаление из SYNCRO должно производиться вручную.
+
+\subsubsection{Закрыть раскрой}
+
+СИСТЕМА должна отслеживать состояние по текущему раскрою с помощью команды ''SE''.
+При изменении идентификатора Run ID 1 СИСТЕМА должна закрывать текущий раскрой, устанавливать признак ''Закрыт'', обновлять параметры, время и заполнять фактические данные выработки. Затем СИСТЕМА переключается на новый раскрой с идентификатором, полученным от SYNCRO. Порядок выполнения раскроев на Fosber может быть изменен и отличаться от порядка в документе ''ОтчетПроизводстваЛГК''. 
+
+\subsubsection{Получать данные по остановам}
+
+СИСТЕМА должна получать данные по остановам гофроагрегата с периодичностью, указанной в параметре ''ИнтервалПолученияСпискаОстановов'' в свойствах оборудования (Справочник ''Оборудование''), указанного в документе выработки ''ОтчетПроизводстваЛГК''.
+
+По каждой строке данных СИСТЕМА формирует две записи в регистре ''Журнал работы оборудования'' о начале и окончании останова. В поле ''ПричинаОстанова'' для записи устанавливается значение ''Причина не определена'', и оператор
+% (или мастер смены) 
+должен самостоятельно указать причину останова, выбрав ее из списка справочника ''Причины остановов''. В поле ''Комментарий'' СИСТЕМА запишет данные о проблемном месте, из-за которого произошёл останов, и описание причины.
+
+Коды причин простоев Syncro должны совпадать с кодами причин простоев в СИСТЕМЕ.
+
+\subsubsection{Отключиться от SYNCRO}
+
+По команде отключения СИСТЕМА должна перестать опрашивать SYNCRO и получать данные.
+При закрытии формы документа опрос также должен быть прекращен.
+
+
